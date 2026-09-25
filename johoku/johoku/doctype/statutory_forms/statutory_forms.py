@@ -13,6 +13,7 @@ class StatutoryForms(Document):
     
     @frappe.whitelist()
     def get_employees_form_5(self):
+        #returns the list of employees joined on the previous month from the current month
         datalist = []
         data = {}
         last_day_of_prev_month = date.today().replace(day=1) - timedelta(days=1)
@@ -35,6 +36,7 @@ class StatutoryForms(Document):
         
     @frappe.whitelist()
     def get_employees_form_10(self):
+        #returns the list of employees left on the previous month from the current month
         datalist = []
         data = {}
         last_day_of_prev_month = date.today().replace(day=1) - timedelta(days=1)

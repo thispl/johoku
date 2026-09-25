@@ -107,11 +107,10 @@
    "label": "Error Preview"
   }
  ],
- "hide_toolbar": 1,
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2022-09-10 16:00:50.017174",
+ "modified": "2025-05-25 15:21:59.131419",
  "modified_by": "Administrator",
  "module": "Johoku",
  "name": "Overtime Plan",
@@ -119,6 +118,8 @@
  "owner": "Administrator",
  "permissions": [
   {
+   "amend": 1,
+   "cancel": 1,
    "create": 1,
    "delete": 1,
    "email": 1,
@@ -127,12 +128,15 @@
    "read": 1,
    "report": 1,
    "role": "System Manager",
+   "select": 1,
    "share": 1,
+   "submit": 1,
    "write": 1
   }
  ],
  "sort_field": "modified",
  "sort_order": "DESC",
  "states": [],
- "title_field": "department"
+ "title_field": "department",
+ "track_changes": 1
 }

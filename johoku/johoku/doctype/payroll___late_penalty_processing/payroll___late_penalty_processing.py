@@ -41,6 +41,8 @@ class PayrollLatePenaltyProcessing(Document):
 	pass
 
 @frappe.whitelist()
+"""It will create a Late Penalty document for the employee who are having late of 5 mins from the shift start time
+these data are from the attendance between the from date and to date"""
 def attendance_calc(from_date,to_date):
 	employees = frappe.get_all("Employee",{"status":"Active"},["*"])
 	for emp in employees:
@@ -97,6 +99,9 @@ def attendance_calc(from_date,to_date):
 	return "ok"
 
 @frappe.whitelist()
+"""
+It will create a additional salary for the component Late Penalty based on the Late penalty document for the period.
+"""
 def additional_salary(from_date,to_date):
 	employees = frappe.get_all("Employee",{"status":"Active"},["*"])
 	for emp in employees:

@@ -8,23 +8,38 @@
  "engine": "InnoDB",
  "field_order": [
   "employee",
+  "department",
   "column_break_2",
   "employee_name",
+  "designation",
   "column_break_4",
-  "department",
+  "company",
   "column_break_3",
   "ot_from_date",
-  "ot_to_date",
-  "shift",
+  "ot_from_plan",
   "column_break_11",
-  "ot_hours",
-  "ot_starting_time",
-  "amended_from"
+  "ot_to_date",
+  "ot_from_attendance",
+  "column_break_15",
+  "shift_type",
+  "permitted_overtime_hours",
+  "amended_from",
+  "attendance_details_section",
+  "in_time",
+  "out_time",
+  "column_break_21",
+  "attended_shift",
+  "shift_status",
+  "column_break_25",
+  "attendance",
+  "working_hours",
+  "overtime_plan_document"
  ],
  "fields": [
   {
    "fieldname": "employee",
    "fieldtype": "Link",
+   "in_standard_filter": 1,
    "label": "Employee",
    "options": "Employee",
    "reqd": 1
@@ -33,6 +48,7 @@
    "fetch_from": "employee.employee_name",
    "fieldname": "employee_name",
    "fieldtype": "Data",
+   "in_standard_filter": 1,
    "label": "Employee Name"
   },
   {
@@ -42,8 +58,10 @@
   {
    "fetch_from": "employee.department",
    "fieldname": "department",
-   "fieldtype": "Data",
-   "label": "Department"
+   "fieldtype": "Link",
+   "in_standard_filter": 1,
+   "label": "Department",
+   "options": "Department"
   },
   {
    "fieldname": "column_break_3",
@@ -58,27 +76,12 @@
   {
    "fieldname": "ot_to_date",
    "fieldtype": "Date",
-   "label": " OT To Date"
-  },
-  {
-   "fieldname": "shift",
-   "fieldtype": "Data",
-   "label": "Shift "
+   "label": " OT To Date",
+   "read_only": 1
   },
   {
    "fieldname": "column_break_11",
    "fieldtype": "Column Break"
-  },
-  {
-   "fieldname": "ot_hours",
-   "fieldtype": "Data",
-   "label": "OT Hours"
-  },
-  {
-   "allow_on_submit": 1,
-   "fieldname": "ot_starting_time",
-   "fieldtype": "Data",
-   "label": "OT Starting Time"
   },
   {
    "fieldname": "amended_from",
@@ -92,11 +95,117 @@
   {
    "fieldname": "column_break_2",
    "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "ot_from_plan",
+   "fieldtype": "Float",
+   "label": "OT From Plan",
+   "read_only": 1
+  },
+  {
+   "allow_on_submit": 1,
+   "fieldname": "ot_from_attendance",
+   "fieldtype": "Float",
+   "label": "OT From Attendance",
+   "read_only": 1
+  },
+  {
+   "allow_on_submit": 1,
+   "fieldname": "attendance",
+   "fieldtype": "Data",
+   "label": "Attendance",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_15",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fetch_from": "employee.designation",
+   "fieldname": "designation",
+   "fieldtype": "Link",
+   "label": "Designation",
+   "options": "Designation"
+  },
+  {
+   "fetch_from": "employee.company",
+   "fieldname": "company",
+   "fieldtype": "Link",
+   "label": "Company",
+   "options": "Company"
+  },
+  {
+   "fieldname": "shift_type",
+   "fieldtype": "Link",
+   "label": "Shift",
+   "options": "Shift Type"
+  },
+  {
+   "fieldname": "attendance_details_section",
+   "fieldtype": "Section Break",
+   "label": "Attendance Details"
+  },
+  {
+   "allow_on_submit": 1,
+   "fieldname": "in_time",
+   "fieldtype": "Datetime",
+   "label": "In Time",
+   "read_only": 1
+  },
+  {
+   "allow_on_submit": 1,
+   "fieldname": "out_time",
+   "fieldtype": "Datetime",
+   "label": "Out Time",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_21",
+   "fieldtype": "Column Break"
+  },
+  {
+   "allow_on_submit": 1,
+   "fieldname": "attended_shift",
+   "fieldtype": "Link",
+   "label": "Attended Shift",
+   "options": "Shift Type",
+   "read_only": 1
+  },
+  {
+   "allow_on_submit": 1,
+   "fieldname": "working_hours",
+   "fieldtype": "Float",
+   "label": "Working Hours",
+   "read_only": 1
+  },
+  {
+   "allow_on_submit": 1,
+   "fieldname": "permitted_overtime_hours",
+   "fieldtype": "Float",
+   "label": "Permitted Overtime Hours"
+  },
+  {
+   "fieldname": "column_break_25",
+   "fieldtype": "Column Break"
+  },
+  {
+   "allow_on_submit": 1,
+   "fieldname": "shift_status",
+   "fieldtype": "Data",
+   "label": "Shift Status",
+   "read_only": 1
+  },
+  {
+   "fieldname": "overtime_plan_document",
+   "fieldtype": "Link",
+   "label": "Overtime Plan Document",
+   "options": "Overtime Plan",
+   "read_only": 1
   }
  ],
  "is_submittable": 1,
  "links": [],
- "modified": "2022-11-21 18:10:01.608442",
+ "modified": "2026-09-16 10:16:00.474202",
  "modified_by": "Administrator",
  "module": "Johoku",
  "name": "Overtime List",

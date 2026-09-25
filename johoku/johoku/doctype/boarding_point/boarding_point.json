@@ -24,7 +24,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2022-08-18 14:58:22.196762",
+ "modified": "2024-10-25 12:12:15.709638",
  "modified_by": "Administrator",
  "module": "Johoku",
  "name": "Boarding Point",
@@ -45,5 +45,6 @@
  ],
  "sort_field": "modified",
  "sort_order": "DESC",
- "states": []
+ "states": [],
+ "track_changes": 1
 }

@@ -2,7 +2,7 @@
 
 # # from pandas.core.tools.datetimes import to_datetime
 # from os import name
-# import frappe
+import frappe
 # from numpy import empty
 # import pandas as pd
 # import json
@@ -303,18 +303,27 @@
 # 						att_doc.save(ignore_permissions=True)
 
 
+def create_hooks_mark_ot():
+	job = frappe.db.exists('Scheduled Job Type', 'create_el_leave_allocation')
+	if not job:
+		sjt = frappe.new_doc("Scheduled Job Type")
+		sjt.update({
+			"method": 'johoku.custom.create_el_leave_allocation',
+			"frequency": 'Cron',
+			"cron_format": '00 00 21 12 *'
+		})
+		sjt.save(ignore_permissions=True)
+
 # def create_hooks_mark_ot():
-# 	job = frappe.db.exists('Scheduled Job Type', 'mark_att')
+# 	job = frappe.db.exists('Scheduled Job Type', 'update_employee_ages')
 # 	if not job:
 # 		sjt = frappe.new_doc("Scheduled Job Type")
 # 		sjt.update({
-# 			"method": 'hunter_douglas.mark_attendance.mark_att',
+# 			"method": 'johoku.custom.update_employee_ages',
 # 			"frequency": 'Cron',
-# 			"cron_format": '00 11 * * *'
+# 			"cron_format": '0 0 * * *'
 # 		})
 # 		sjt.save(ignore_permissions=True)
-
-
 # def get_dates(from_date,to_date):
 # 	no_of_days = date_diff(add_days(to_date, 1), from_date)
 # 	dates = [add_days(from_date, i) for i in range(0, no_of_days)]

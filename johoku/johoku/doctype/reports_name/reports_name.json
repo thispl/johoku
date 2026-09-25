@@ -19,7 +19,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2023-01-19 11:55:15.795453",
+ "modified": "2024-10-25 12:12:13.956228",
  "modified_by": "Administrator",
  "module": "Johoku",
  "name": "Reports Name",
@@ -41,5 +41,6 @@
  ],
  "sort_field": "modified",
  "sort_order": "DESC",
- "states": []
+ "states": [],
+ "track_changes": 1
 }

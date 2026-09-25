@@ -187,7 +187,7 @@ def overtime_grade(ot_date,shift,from_time,to_time,employee_grade,ot_hours,emp):
                     data.append(grade_mg_4_to_11) 
             else:
                 message = ('No Holiday') 
-                frappe.log_error('Holiday List Condition',message)       
+                # frappe.log_error('Holiday List Condition',message)       
         else:
             if shift == '1':
                 shift_time = frappe.db.get_value('Shift Type',{'name':shift},['start_time'])
@@ -232,7 +232,7 @@ def overtime_grade(ot_date,shift,from_time,to_time,employee_grade,ot_hours,emp):
                         data.append(grade_nil)    
             else:
                 message = ('Shift Based Overtime closed')
-                frappe.log_error('Overtime Request',message)
+                # frappe.log_error('Overtime Request',message)
             if frappe.db.get_value('Attendance',{'employee':emp,'attendance_date':ot_date},['over_time_hours']) >=3 :
                 if shift != '3':
                     if employee_grade == 'G-0':
@@ -247,17 +247,17 @@ def overtime_grade(ot_date,shift,from_time,to_time,employee_grade,ot_hours,emp):
                             data.append(grade_mg_4_to_11) 
                         else:
                             message = ('Grade over less than MG-11')
-                            frappe.log_error('Overtime Request',message)
+                            # frappe.log_error('Overtime Request',message)
                     elif frappe.db.get_value('Attendance',{'employee':emp,'attendance_date':ot_date},['over_time_hours']) >=8:
                         if employee_grade in ['MG-4','MG-5','MG-6','MG-7','MG-8','MG-9','MG-10','MG-11']:
                             grade_mg_4_to_11 = 'Full Day Compensatory Off' 
                             data.append(grade_mg_4_to_11) 
                         else:
                             message = ('Grade over less than MG-11')
-                            frappe.log_error('Overtime Request',message)   
+                            # frappe.log_error('Overtime Request',message)   
             else:
                 message = ('Overtime Hours lesser than 3 is not run')
-                frappe.log_error('Overtime Request',message) 
+                # frappe.log_error('Overtime Request',message) 
     # return data   
     return ", ".join(data) if data else "NIL"             
            

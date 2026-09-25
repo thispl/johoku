@@ -23,13 +23,24 @@ frappe.ui.form.on('Shift Schedule', {
 		// 	// }
 		// }
 	},
+	show_summary(frm) {
+		if (frm.doc.attach) {
+			frm.fields_dict.summary.$wrapper.empty()
+			frm.call('show_summary').then(r => {
+				// console.log("Hii")
+				if (r.message) {
+					frm.fields_dict.summary.$wrapper.empty().append("<h4>Summary</h4><table class='table table-bordered'>" + r.message + "</table>")
+				}
+			})
+		}
+	},
 	to_date(frm) {
 		if (frm.doc.to_date) {
-			if (frm.doc.to_date < frappe.datetime.now_date()) {
-				frappe.msgprint("To Date should not be a Past Date")
-				frm.set_value('to_date', '')
-			}
-		    else if (frm.doc.to_date < frm.doc.from_date) {
+			// if (frm.doc.to_date < frappe.datetime.now_date()) {
+			// 	frappe.msgprint("To Date should not be a Past Date")
+			// 	frm.set_value('to_date', '')
+			// }
+		    if (frm.doc.to_date < frm.doc.from_date) {
 				frappe.msgprint("To Date should not be greater than From Date")
 				frm.set_value('to_date', '')
 			}
@@ -44,4 +55,10 @@ frappe.ui.form.on('Shift Schedule', {
 			})
 		}
 	},
+	attach(frm){
+		frm.trigger('show_summary')
+	},
+	refresh(frm){
+		frm.trigger('show_summary')
+	}
 });

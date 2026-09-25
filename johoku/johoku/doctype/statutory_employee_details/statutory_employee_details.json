@@ -105,7 +105,7 @@
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2023-03-14 10:26:51.538789",
+ "modified": "2024-10-25 12:12:12.744962",
  "modified_by": "Administrator",
  "module": "Johoku",
  "name": "Statutory Employee Details",
@@ -114,5 +114,6 @@
  "permissions": [],
  "sort_field": "modified",
  "sort_order": "DESC",
- "states": []
+ "states": [],
+ "track_changes": 1
 }

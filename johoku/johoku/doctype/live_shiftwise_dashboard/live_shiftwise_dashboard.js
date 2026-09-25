@@ -27,10 +27,15 @@ frappe.ui.form.on('Live Shiftwise Dashboard', {
 		frm.disable_save()
 	},
 	attendance_date(frm){
-		frm.trigger('livedata')
+		if (frm.doc.attendance_date){
+			frm.trigger('livedata')
+		}
+		
 	},
 	shift(frm){
-		frm.trigger('livedata')
+		if (frm.doc.attendance_date){
+			frm.trigger('livedata')
+		}
 	},
 	livedata(frm){
 				frappe.call({

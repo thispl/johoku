@@ -22,5 +22,5 @@ frappe.query_reports["Monthly OT Register"] = {
 			"fieldtype": "Link",
 			"options": "Employee",
 		}
-	],
+	]
 };

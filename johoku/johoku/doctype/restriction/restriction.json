@@ -120,7 +120,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2023-06-23 21:37:42.007064",
+ "modified": "2024-10-25 12:12:11.160158",
  "modified_by": "Administrator",
  "module": "Johoku",
  "name": "Restriction",
@@ -142,5 +142,6 @@
  ],
  "sort_field": "modified",
  "sort_order": "DESC",
- "states": []
+ "states": [],
+ "track_changes": 1
 }

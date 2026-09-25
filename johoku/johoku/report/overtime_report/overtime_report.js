@@ -32,5 +32,8 @@ frappe.query_reports["Overtime Report"] = {
 			"fieldtype": "Link",
 			"options": "Employee",
 		}
-	]
+	],
+	onload(frm){
+		frappe.breadcrumbs.add("Overtime Report", "report");
+	}
 };

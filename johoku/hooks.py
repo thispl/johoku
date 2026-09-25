@@ -55,10 +55,12 @@ app_license = "MIT"
 # ----------
 
 # add methods and filters to jinja environment
-# jinja = {
-# 	"methods": "johoku.utils.jinja_methods",
-# 	"filters": "johoku.utils.jinja_filters"
-# }
+jinja = {
+	# "methods": "johoku.utils.jinja_methods",
+	# "filters": "johoku.utils.jinja_filters"
+	"methods": ["johoku.utils.payslip_leave_data",
+    "johoku.utils.payslip_leave_data_for_gt_and_tt"]
+}
 
 # Installation
 # ------------
@@ -95,10 +97,14 @@ app_license = "MIT"
 # Override standard doctype classes
 
 override_doctype_class = {
+	"Salary Slip":"johoku.overrides.CustomSalarySlip",
 	"Employee Checkin": "johoku.overrides.CustomEmployeeCheckin",
 	"Leave Application":"johoku.overrides.CustomLeaveApplication",
 	"Compensatory Leave Request": "johoku.overrides.CustomCompensatoryLeaveRequest",
     "Leave Allocation":"johoku.overrides.CustomLeaveAllocation",
+	"Employee":"johoku.overrides.CustomEmployee",
+ 	"Shift Request": "johoku.overrides.CustomShiftRequest"
+
 }
 
 # Document Events
@@ -107,11 +113,32 @@ override_doctype_class = {
 
 doc_events = {
     "Employee":{
-		"validate": "johoku.custom.inactive_employee"
+		"validate": "johoku.employee_custom.inactive_employee",
+        "after_insert":"johoku.employee_custom.calculate_age"
 	},
-    # "Leave Application" :{
-    #     "validate": "johoku.custom.validate_leave_application"
+    "Leave Application" :{
+        "after_insert": "johoku.leave_application_custom.validate_leave",
+        "validate": "johoku.leave_application_custom.restrict_for_zero_balance",
+        "on_update":"johoku.leave_application_custom.update_status"
         
+	},
+    'Scheduled Job Log':{
+       "validate":"johoku.custom.schedule_log_fail" 
+	},
+    'Compensatory Leave Request':{
+        # "after_insert": "johoku.custom.validate_com_off",
+        "on_cancel":'johoku.comp_off_custom.compensatory_on_cancel',
+	},
+    # "Shift Assignment": {
+    #     "on_cancel": "johoku.mark_attendance.shift_assignment_cancelled"
+    # },
+    'Attendance':{
+       "validate":"johoku.attendance_custom.submit_att" ,
+    #    "on_submit":"johoku.custom.create_coff" ,
+    #    'after_insert':"johoku.custom.submit_att_leave" ,
+	},
+    # "Holiday List":{
+	# 	"validate":"johoku.custom.validate_the_holiday_list",
 	# },
 	# "Overtime Plan": {
 	# 	"on_submit": "johoku.johoku.doctype.overtime_plan.overtime_plan.create_overtime_list",
@@ -146,7 +173,17 @@ scheduler_events = {
 		],
 		"30 00 * * *" :[
 			'johoku.mark_attendance.delete_urc_automatically'
-		]
+		],
+        "00 17 20 * *" :[
+			'johoku.mark_attendance.mark_late_early_monthly'
+		],
+        "0 7 * * *": [ 
+            "johoku.employee_custom.send_birthday_reminder_to_hr_new1"
+        ],
+      
+        "0 13 * * 2": [  
+            "johoku.johoku.doctype.food_count.food_count.auto_create_food_count"
+        ]
 
 	}
 }

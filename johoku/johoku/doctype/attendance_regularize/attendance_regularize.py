@@ -19,6 +19,7 @@ from frappe.utils import add_months, cint, flt, getdate, time_diff_in_hours
 class AttendanceRegularize(Document):
 
 	def on_submit(self):
+		#use to regularize the attendance based on the corrected in time, corrected out time and the corrected shift
 		status = self.validate_total_wh()
 		att_status = status[0]['status']
 		att_working_hours = self.validate_total_wh()
@@ -87,6 +88,7 @@ class AttendanceRegularize(Document):
 				frappe.throw(_("Employee has Attendance for the date %s"%(self.attendance_date)))
 
 	def on_cancel(self):
+		#on cancel the attendance regularize field was updated as empty and shift matched/unmatched as Unmatched in the attendance
 		att = frappe.db.exists('Attendance',{'employee':self.employee,'attendance_date':self.attendance_date})
 		if att:
 			att_reg = frappe.db.get_value('Attendance',{'name':att},['attendance_regularize'])
@@ -95,6 +97,7 @@ class AttendanceRegularize(Document):
 				frappe.db.sql(""" update `tabAttendance` set shift_matched_or_unmatched = 'Unmatched' where name = '%s' and docstatus != 2 """%(att))
 	 
 	def updated_shift(self):
+		#use to get the corrected shift starttime and end time
 		datalist = []
 		data = {}
 		get_shift_start_time = frappe.db.get_value('Shift Type',{'name':self.corrected_shift},['start_time'])
@@ -108,6 +111,7 @@ class AttendanceRegularize(Document):
 
 
 	def validate_total_wh(self):
+		#use to calculate the total working hours and status based on the corrected in time and corrected out time
 		datalist = []
 		data = {}
 		work_hour = time_diff_in_hours(self.corrected_out,self.corrected_in)
@@ -134,6 +138,7 @@ class AttendanceRegularize(Document):
 		return datalist  
 
 	def validate_extra_hour(self):
+		#use to calculate the extra hours and ot hours based on the corrected in time and corrected out time
 		datalist = []
 		data = {}
 		ftr = [3600,60,1]
@@ -228,6 +233,7 @@ class AttendanceRegularize(Document):
 		return datalist    
 
 	def validate_check_holiday(self):
+		#use to check the date is a holiday for the employee by passing the employee's holiday list
 		holiday_list = frappe.db.get_value('Employee',self.employee,'holiday_list')
 		holiday = frappe.db.sql("""select `tabHoliday`.holiday_date,`tabHoliday`.weekly_off from `tabHoliday List` 
 		left join `tabHoliday` on `tabHoliday`.parent = `tabHoliday List`.name where `tabHoliday List`.name = '%s' and holiday_date = '%s' """%(holiday_list,self.attendance_date),as_dict=True)
@@ -239,6 +245,7 @@ class AttendanceRegularize(Document):
 
 @frappe.whitelist()
 def get_assigned_shift_details(emp,att_date):
+	#returns the assigned shift if it is exists
 	datalist = []
 	data = {}
 	if frappe.db.exists('Shift Assignment',{'start_date':att_date,'employee':emp}):
@@ -266,6 +273,7 @@ def get_assigned_shift_details(emp,att_date):
 
 @frappe.whitelist()
 def get_attendance(emp,att_date):
+	#return the in time and out time of the employee of that date and checks if both in time and out time are not present return a message:Employee has No Checkins for the day
 	datalist = []
 	data = {}
 	if frappe.db.exists('Attendance',{'employee':emp,'attendance_date':att_date}):
@@ -293,6 +301,7 @@ def get_attendance(emp,att_date):
 
 @frappe.whitelist()
 def attendance_marked(emp,att_date):
+	#return original in time, out time and assigned shift from the attendance of the employee for that date
 	datalist = []
 	data = {}
 	assigned_shift = ''

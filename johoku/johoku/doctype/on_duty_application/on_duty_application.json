@@ -27,6 +27,7 @@
   "from_time",
   "to_time",
   "to",
+  "total_od_hours",
   "vehicle_request",
   "section_break_22",
   "multi_employee",
@@ -35,6 +36,7 @@
   "approver_name",
   "employee",
   "employee_name",
+  "request_by",
   "department",
   "data_31",
   "address",
@@ -53,7 +55,14 @@
   "column_break_44",
   "company",
   "letter_head",
-  "amended_from"
+  "amended_from",
+  "approvers_section",
+  "department_approval",
+  "hod_approval",
+  "hr_approval",
+  "column_break_54",
+  "director_approval",
+  "approver_role"
  ],
  "fields": [
   {
@@ -206,19 +215,22 @@
   {
    "fieldname": "employee",
    "fieldtype": "Link",
-   "label": "Request By (Employee ID)",
-   "options": "Employee"
+   "in_standard_filter": 1,
+   "label": "Employee",
+   "options": "Employee",
+   "reqd": 1
   },
   {
+   "fetch_from": "employee.employee_name",
    "fieldname": "employee_name",
    "fieldtype": "Data",
-   "in_list_view": 1,
-   "label": "Requested By"
+   "label": "Employee Name"
   },
   {
    "fetch_from": "employee.department",
    "fieldname": "department",
    "fieldtype": "Link",
+   "in_standard_filter": 1,
    "label": "Department",
    "options": "Department"
   },
@@ -257,6 +269,7 @@
    "label": "Grade"
   },
   {
+   "fetch_from": "employee.employee_category",
    "fieldname": "category",
    "fieldtype": "Read Only",
    "label": "Category"
@@ -339,7 +352,6 @@
   {
    "fieldname": "to_date",
    "fieldtype": "Date",
-   "hidden": 1,
    "label": "To Date"
   },
   {
@@ -355,6 +367,66 @@
    "fieldtype": "Time",
    "label": "To Time",
    "read_only": 1
+  },
+  {
+   "fieldname": "total_od_hours",
+   "fieldtype": "Float",
+   "label": "Total OD Hours"
+  },
+  {
+   "fieldname": "approvers_section",
+   "fieldtype": "Section Break",
+   "label": "Approvers"
+  },
+  {
+   "fetch_from": "employee.department_approval",
+   "fieldname": "department_approval",
+   "fieldtype": "Link",
+   "label": "Department Approval ",
+   "options": "User",
+   "read_only": 1
+  },
+  {
+   "fetch_from": "employee.hod_approval",
+   "fieldname": "hod_approval",
+   "fieldtype": "Link",
+   "label": "HOD Approval",
+   "options": "User",
+   "read_only": 1
+  },
+  {
+   "fetch_from": "employee.director_approval",
+   "fieldname": "director_approval",
+   "fieldtype": "Link",
+   "label": "Director Approval",
+   "options": "User",
+   "read_only": 1
+  },
+  {
+   "fetch_from": "employee.hr_approval",
+   "fieldname": "hr_approval",
+   "fieldtype": "Link",
+   "label": "HR Approval",
+   "options": "User",
+   "read_only": 1
+  },
+  {
+   "fetch_from": "employee.user_id",
+   "fieldname": "request_by",
+   "fieldtype": "Link",
+   "label": "Request By",
+   "options": "User"
+  },
+  {
+   "fieldname": "column_break_54",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "approver_role",
+   "fieldtype": "Select",
+   "hidden": 1,
+   "label": "Approver Role",
+   "options": "\nHOD\nTL\nHR Manager\nMD\nDirector"
   }
  ],
  "index_web_pages_for_search": 1,
@@ -365,7 +437,7 @@
    "link_fieldname": "on_duty_application"
   }
  ],
- "modified": "2024-08-10 12:20:35.053121",
+ "modified": "2025-03-18 16:02:14.352439",
  "modified_by": "Administrator",
  "module": "Johoku",
  "name": "On Duty Application",

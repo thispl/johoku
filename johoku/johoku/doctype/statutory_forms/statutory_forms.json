@@ -73,7 +73,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2022-11-07 16:06:23.268781",
+ "modified": "2024-10-25 12:12:12.457279",
  "modified_by": "Administrator",
  "module": "Johoku",
  "name": "Statutory Forms",
@@ -96,5 +96,6 @@
  ],
  "sort_field": "modified",
  "sort_order": "DESC",
- "states": []
+ "states": [],
+ "track_changes": 1
 }

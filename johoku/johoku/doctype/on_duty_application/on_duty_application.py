@@ -9,49 +9,576 @@ import frappe
 from frappe.model.document import Document
 from datetime import datetime,timedelta,date
 from frappe import _
+import time
+
 from frappe.utils import today,flt,add_days,date_diff,getdate,cint,formatdate, getdate, get_link_to_form, \
     comma_or, get_fullname
 from frappe.utils import get_first_day, get_last_day, format_datetime,get_url_to_form
+from datetime import datetime, time, timedelta
+from johoku.mark_attendance import mark_att_with_employee
+from johoku.mark_attendance import check_holiday
+
 
 class LeaveApproverIdentityError(frappe.ValidationError): pass
 class OverlapError(frappe.ValidationError): pass
 class AttendanceAlreadyMarkedError(frappe.ValidationError): pass    
 
 class OnDutyApplication(Document):
+    
+    def validate(self):
+        if self.is_new():
+            user_roles = frappe.get_roles(frappe.session.user)
+            hr = "Miss Punch" in user_roles
+            admin = "Administrator" in user_roles
+            if (not hr):
+                allowed_days = 3
+                current_date = today()
+                if isinstance(current_date, str):
+                    current_date = datetime.strptime(current_date, "%Y-%m-%d").date()
+                earliest_allowed = add_days(current_date, -3)
+                if isinstance(self.to_date, str):
+                    miss_date = datetime.strptime(self.to_date, "%Y-%m-%d").date()
+                else:
+                    miss_date = self.to_date
 
+                if miss_date < earliest_allowed:
+                    frappe.throw(
+                    _("On Duty applications are allowed only for up to the previous {0} working days.")
+                    .format(allowed_days)
+                    )
+    # def on_submit(self):
+    #     # frappe.db.set_value('On Duty Application',self.name,'approver',frappe.session.user)
+    #     # frappe.errprint('Welcome to On Submit')
+    #     if self.status == "Applied":
+    #         frappe.throw(_("Only Applications with status 'Approved' and 'Rejected' can be submitted"))
+        
+    #     if self.workflow_state == "Approved":
+    #         no_of_days = date_diff(add_days(self.to_date, 1),self.od_date )
+    #         dates = [add_days(self.od_date, i) for i in range(0, no_of_days)]
+    #         for emp in self.multi_employee:
+    #             for date in dates:
+    #                 att = frappe.db.exists("Attendance",{"attendance_date":date,"employee":emp.employee,"docstatus":["!=",2]})
+    #                 if att:
+    #                     doc = frappe.get_doc("Attendance",att)
+    #                     if doc.docstatus == 0:
+    #                         doc.shift = self.shift
+    #                         doc.attended_shift = self.shift
+    #                         doc.on_duty_application = self.name
+    #                         doc.session_from_time = self.from_time
+    #                         if self.session != 'Hourly':
+    #                             doc.session_to_time = self.to_time
+    #                         else:
+    #                             doc.session_to_time = self.to
+    #                         doc.save(ignore_permissions=True)
+    #                         # doc.submit()
+    #                         frappe.db.commit()
+    #                     elif doc.docstatus == 1:
+    #                         doc.shift = self.shift
+    #                         doc.attended_shift = self.shift
+    #                         doc.on_duty_application = self.name
+    #                         doc.session_from_time = self.from_time
+    #                         if self.session != 'Hourly':
+    #                             doc.session_to_time = self.to_time
+    #                         else:
+    #                             doc.session_to_time = self.to
+    #                         doc.save(ignore_permissions=True)
+    #                         # doc.submit()
+    #                         frappe.db.commit()
+    #                     if self.shift == '1':
+    #                         mark_att_with_employee(date,date,self.employee)
+    #                     else:
+    #                         to_date = add_days(date,1)
+    #                         mark_att_with_employee(date,to_date,self.employee)
+        
+    #                 else:
+                        
+    #                     doc = frappe.new_doc("Attendance")
+    #                     doc.employee = emp.employee
+    #                     doc.attendance_date = date
+    #                     if self.session == "Full Day":
+    #                         doc.status = "Present"
+    #                     elif self.session == "First Half" or self.session == "Second Half":     
+    #                         doc.status = "Half Day"
+    #                     else:
+    #                         doc.status = "Absent"
+    #                     doc.shift = self.shift
+    #                     doc.attended_shift = self.shift
+    #                     doc.on_duty_application = self.name
+    #                     doc.session_from_time = self.from_time
+    #                     if self.session != 'Hourly':
+    #                         doc.session_to_time = self.to_time
+    #                     else:
+    #                         doc.session_to_time = self.to
+    #                     doc.save(ignore_permissions=True)
+    #                     # doc.submit()
+    #                     frappe.db.commit()
+    #                     if self.shift == '1':
+    #                         mark_att_with_employee(date,date,self.employee)
+    #                     else:
+    #                         to_date = add_days(date,1)
+    #                         mark_att_with_employee(date,to_date,self.employee)
+        
+    #             hh = check_holiday(self.od_date, self.employee)
+    #             if hh:
+    #                 self.is_holiday = 1
+    #             else:
+    #                 self.is_holiday = 0    
+    
     def on_submit(self):
+
         if self.status == "Applied":
             frappe.throw(_("Only Applications with status 'Approved' and 'Rejected' can be submitted"))
+
         if self.workflow_state == "Approved":
-            no_of_days = date_diff(add_days(self.to_date, 1),self.od_date )
+
+            no_of_days = date_diff(add_days(self.to_date, 1), self.od_date)
             dates = [add_days(self.od_date, i) for i in range(0, no_of_days)]
+
             for emp in self.multi_employee:
                 for date in dates:
-                    att = frappe.db.exists("Attendance",{"attendance_date":date,"employee":emp.employee,"docstatus":["!=","2"]})
+
+                    att = frappe.db.exists("Attendance", {
+                        "attendance_date": date,
+                        "employee": emp.employee,
+                        "docstatus": ["!=", 2]
+                    })
+
                     if att:
-                        doc = frappe.get_doc("Attendance",att)
-                        if doc.docstatus == 0:
-                            doc.status = 'Present'
-                            doc.on_duty_application = self.name
-                            doc.save(ignore_permissions=True)
-                            doc.submit()
-                            frappe.db.commit()
-                        elif doc.docstatus == 1:
-                            doc.cancel()
-                            doc = frappe.new_doc("Attendance")
-                            doc.employee = emp.employee
-                            doc.attendance_date = date
-                            doc.status = 'Present'
-                            doc.on_duty_application = self.name
-                            doc.save(ignore_permissions=True)
-                            doc.submit()
-                            frappe.db.commit()
+                        doc = frappe.get_doc("Attendance", att)
+
+                        # Update existing attendance
+                        doc.shift = self.shift
+                        doc.attended_shift = self.shift
+                        doc.on_duty_application = self.name
+                        doc.session_from_time = self.from_time
+
+                        if self.session != 'Hourly':
+                            doc.session_to_time = self.to_time
+                        else:
+                            doc.session_to_time = self.to
+
+                        doc.save(ignore_permissions=True)
+
+                    else:
+                        # Create new attendance
+                        doc = frappe.new_doc("Attendance")
+                        doc.employee = emp.employee
+                        doc.attendance_date = date
+
+                        if self.session == "Full Day":
+                            doc.status = "Present"
+                        elif self.session in ["First Half", "Second Half"]:
+                            doc.status = "Half Day"
+                        else:
+                            doc.status = "Absent"
+
+                        doc.shift = self.shift
+                        doc.attended_shift = self.shift
+                        doc.on_duty_application = self.name
+                        doc.session_from_time = self.from_time
+
+                        if self.session != 'Hourly':
+                            doc.session_to_time = self.to_time
+                        else:
+                            doc.session_to_time = self.to
+
+                        doc.save(ignore_permissions=True)
+
+                    # Mark attendance
+                    if self.shift == '1':
+                        mark_att_with_employee(date, date, emp.employee)
+                    else:
+                        to_date = add_days(date, 1)
+                        mark_att_with_employee(date, to_date, emp.employee)
+
+            # Holiday Check & Comp Off Creation
+            first_emp = self.multi_employee[0].employee if self.multi_employee else None
+            hh = check_holiday(self.od_date, first_emp) if first_emp else False
+
+            if hh:
+                # self.is_holiday = 1
+
+                created = False
+
+                for emp in self.multi_employee:
+                    exists = frappe.db.exists("Employee Benefits Regularization", {
+                        "reference_name": self.name,
+                        "employee": emp.employee
+                    })
+
+                    if not exists:
+                        comp_doc = frappe.new_doc("Employee Benefits Regularization")
+                        comp_doc.employee = emp.employee
+                        comp_doc.date = self.od_date
+                        comp_doc.shift = self.shift
+                        comp_doc.from_on_duty = 1
+                        comp_doc.reference_doctype = self.name
+                        # comp_doc.from_time = self.from_time
+                        # comp_doc.to_time = self.to_time
+                        comp_doc.working_hours = self.total_od_hours
+                        comp_doc.provision = 'C-OFF'
+                        if self.session == "Full Day":
+                            comp_doc.leaves = 1
+                        else:
+                            comp_doc.leaves = 0.5
+                        comp_doc.insert(ignore_permissions=True)
+                        # comp_doc.submit()  
+                        created = True
+
+                # if created:
+                #     frappe.msgprint("Employee Benefits Regularization created")
+
+           
+        # if self.workflow_state == "Approved":
+        # 	frappe.errprint(self.from_time)
+        # 	frappe.errprint(self.to_time)
+        # 	if isinstance(self.from_time, str):
+        # 		frappe.errprint("A")
+        # 		start_time = datetime.strptime(self.from_time, "%H:%M:%S").time() 
+        # 	elif isinstance(self.from_time, timedelta):
+        # 		frappe.errprint("B")
+        # 		start_time = (datetime.min + self.from_time).time()
+        # 	else:
+        # 		frappe.errprint("C")
+        # 		start_time = self.from_time 
+        # 	if isinstance(self.to_time, str):
+        # 		frappe.errprint("D")
+        # 		end_time = datetime.strptime(self.to_time, "%H:%M:%S").time()  
+        # 	elif isinstance(self.to_time, timedelta):
+        # 		frappe.errprint("E")
+        # 		end_time = (datetime.min + self.to_time).time()
+        # 	else:
+        # 		end_time = self.to_time  
+        # 		frappe.errprint("F")
+        # 	if isinstance(start_time, time) and isinstance(end_time, time):
+        # 		time_difference = datetime.combine(datetime.today(), end_time) - datetime.combine(datetime.today(), start_time)
+        # 		frappe.errprint(f"Time difference: {time_difference}")
+        # 		frappe.errprint(time_difference)
+        # 		total_seconds = time_difference.total_seconds()
+        # 		formatted_total_hours =round((total_seconds/3600),1)
+        # 		no_of_days = date_diff(add_days(self.to_date, 1),self.od_date )
+        # 		dates = [add_days(self.od_date, i) for i in range(0, no_of_days)]
+        # 		for emp in self.multi_employee:
+        # 			for date in dates:
+        # 				att = frappe.db.exists("Attendance",{"attendance_date":date,"employee":emp.employee,"docstatus":["!=","2"]})
+        # 				if att:
+        # 					doc = frappe.get_doc("Attendance",att)
+        # 					if doc.docstatus == 0:
+        # 						if self.session == "Full Day":
+        # 							frappe.errprint("Full day")
+        # 							if doc.total_working_hours:
+        # 								total_working_hours = doc.total_working_hours 
+        # 								total_working_hours += formatted_total_hours
+        # 							else:
+        # 								total_working_hours = formatted_total_hours
+        # 							doc.status = "Present"
+        # 						if self.session == "First Half":
+        # 							if doc.total_working_hours:
+        # 								total_working_hours = doc.total_working_hours 
+        # 								total_working_hours += formatted_total_hours
+        # 							else:
+        # 								total_working_hours = formatted_total_hours
+        # 							total_working_hours = float(total_working_hours)
+        # 							if total_working_hours >= 8:
+        # 								doc.status = "Present"
+        # 							elif 4 <= total_working_hours <8:
+        # 								doc.status = "Half Day"
+        # 							else:
+        # 								doc.status = "Absent"
+        # 						if self.session == "Second Half":
+        # 							if doc.total_working_hours:
+        # 								total_working_hours = doc.total_working_hours 
+        # 								total_working_hours += formatted_total_hours
+        # 							else:
+        # 								total_working_hours = formatted_total_hours
+        # 							total_working_hours = float(total_working_hours)
+        # 							if total_working_hours >= 8:
+        # 								doc.status = "Present"
+        # 							elif 4 <= total_working_hours <8:
+        # 								doc.status = "Half Day"
+        # 							else:
+        # 								doc.status = "Absent"
+        # 						if self.session == "Hourly":
+        # 							if self.total_hourly == '1 Hour':
+        # 								if doc.total_working_hours:
+        # 									total_working_hours = doc.total_working_hours 
+        # 									total_working_hours += 1
+        # 								else:
+        # 									total_working_hours = 1
+        # 								total_working_hours = float(total_working_hours)
+        # 								if total_working_hours >= 8:
+        # 									doc.status = "Present"
+        # 								elif 4 <= total_working_hours <8:
+        # 									doc.status = "Half Day"
+        # 								else:
+        # 									doc.status = "Absent"
+        # 							elif self.total_hourly == '2 Hours':	
+        # 								if doc.total_working_hours:
+        # 									total_working_hours = doc.total_working_hours 
+        # 									total_working_hours += 2
+        # 								else:
+        # 									total_working_hours = 2
+        # 								total_working_hours = float(total_working_hours)
+        # 							elif self.total_hourly == '3 Hours':
+        # 								if doc.total_working_hours:
+        # 									total_working_hours = doc.total_working_hours 
+        # 									total_working_hours += 3
+        # 								else:
+        # 									total_working_hours = 3
+        # 								total_working_hours = float(total_working_hours)
+        # 							elif self.total_hourly == '4 Hours':
+        # 								if doc.total_working_hours:
+        # 									total_working_hours = doc.total_working_hours 
+        # 									total_working_hours += 4
+        # 								else:
+        # 									total_working_hours = 4
+        # 								total_working_hours = float(total_working_hours)
+        # 							if total_working_hours >= 8:
+        # 								doc.status = "Present"
+        # 							elif 4 <= total_working_hours <8:
+        # 								doc.status = "Half Day"
+        # 							else:
+        # 								doc.status = "Absent"
+        # 						doc.shift = self.shift
+        # 						doc.on_duty_application = self.name
+        # 						doc.session_from_time = self.from_time
+        # 						doc.session_to_time = self.to_time
+        # 						doc.save(ignore_permissions=True)
+        # 						doc.submit()
+        # 						frappe.db.commit()
+        # 					elif doc.docstatus == 1:
+        # 						if self.session == "Full Day":
+        # 							frappe.errprint("Full day")
+        # 							if doc.total_working_hours:
+        # 								total_working_hours = doc.total_working_hours 
+        # 								total_working_hours += formatted_total_hours
+        # 							else:
+        # 								total_working_hours = formatted_total_hours
+        # 							doc.status = "Present"
+        # 						if self.session == "First Half":
+        # 							if doc.total_working_hours:
+        # 								total_working_hours = doc.total_working_hours 
+        # 								total_working_hours += formatted_total_hours
+        # 							else:
+        # 								total_working_hours = formatted_total_hours
+        # 							total_working_hours = float(total_working_hours)
+        # 							if total_working_hours >= 8:
+        # 								doc.status = "Present"
+        # 							elif 4 <= total_working_hours <8:
+        # 								doc.status = "Half Day"
+        # 							else:
+        # 								doc.status = "Absent"
+        # 						if self.session == "Second Half":
+        # 							if doc.total_working_hours:
+        # 								total_working_hours = doc.total_working_hours 
+        # 								total_working_hours += formatted_total_hours
+        # 							else:
+        # 								total_working_hours = formatted_total_hours
+        # 							total_working_hours = float(total_working_hours)
+        # 							if total_working_hours >= 8:
+        # 								doc.status = "Present"
+        # 							elif 4 <= total_working_hours <8:
+        # 								doc.status = "Half Day"
+        # 							else:
+        # 								doc.status = "Absent"
+        # 						if self.session == "Hourly":
+        # 							if self.total_hourly == '1 Hour':
+        # 								if doc.total_working_hours:
+        # 									total_working_hours = doc.total_working_hours 
+        # 									total_working_hours += 1
+        # 								else:
+        # 									total_working_hours = 1
+        # 								total_working_hours = float(total_working_hours)
+        # 								if total_working_hours >= 8:
+        # 									doc.status = "Present"
+        # 								elif 4 <= total_working_hours <8:
+        # 									doc.status = "Half Day"
+        # 								else:
+        # 									doc.status = "Absent"
+        # 							elif self.total_hourly == '2 Hours':	
+        # 								if doc.total_working_hours:
+        # 									total_working_hours = doc.total_working_hours 
+        # 									total_working_hours += 2
+        # 								else:
+        # 									total_working_hours = 2
+        # 								total_working_hours = float(total_working_hours)
+        # 							elif self.total_hourly == '3 Hours':
+        # 								if doc.total_working_hours:
+        # 									total_working_hours = doc.total_working_hours 
+        # 									total_working_hours += 3
+        # 								else:
+        # 									total_working_hours = 3
+        # 								total_working_hours = float(total_working_hours)
+        # 							elif self.total_hourly == '4 Hours':
+        # 								if doc.total_working_hours:
+        # 									total_working_hours = doc.total_working_hours 
+        # 									total_working_hours += 4
+        # 								else:
+        # 									total_working_hours = 4
+        # 								total_working_hours = float(total_working_hours)
+        # 							if total_working_hours >= 8:
+        # 								doc.status = "Present"
+        # 							elif 4 <= total_working_hours <8:
+        # 								doc.status = "Half Day"
+        # 							else:
+        # 								doc.status = "Absent"
+        # 						# doc.cancel()
+        # 						frappe.db.set_value("Attendance",doc.name,'status',doc.status)
+        # 						frappe.db.set_value("Attendance",doc.name,'shift',self.shift)
+        # 						frappe.db.set_value("Attendance",doc.name,'on_duty_application',self.name)
+        # 						frappe.db.set_value("Attendance",doc.name,'session_from_time',self.from_time)
+        # 						frappe.db.set_value("Attendance",doc.name,'session_to_time',self.to_time)
+        # 						# doc = frappe.new_doc("Attendance")
+        # 						# doc.employee = emp.employee
+        # 						# doc.attendance_date = date
+        # 						# doc.status = 'Present'
+        # 						# doc.shift = self.shift
+        # 						# doc.on_duty_application = self.name
+        # 						# doc.save(ignore_permissions=True)
+        # 						# doc.submit()
+        # 						# frappe.db.commit()
+        # 				else: 
+        # 					doc = frappe.new_doc("Attendance")
+        # 					doc.employee = emp.employee
+        # 					doc.attendance_date = date
+        # 					if self.session == "Full Day":
+        # 						frappe.errprint("Full day")
+        # 						if doc.total_working_hours:
+        # 							total_working_hours = doc.total_working_hours 
+        # 							total_working_hours += formatted_total_hours
+        # 						else:
+        # 							total_working_hours = formatted_total_hours
+        # 						doc.status = "Present"
+        # 					if self.session == "First Half":
+        # 						if doc.total_working_hours:
+        # 							total_working_hours = doc.total_working_hours 
+        # 							total_working_hours += formatted_total_hours
+        # 						else:
+        # 							total_working_hours = formatted_total_hours
+        # 						total_working_hours = float(total_working_hours)
+        # 						if total_working_hours >= 8:
+        # 							doc.status = "Present"
+        # 						elif 4 <= total_working_hours <8:
+        # 							doc.status = "Half Day"
+        # 						else:
+        # 							doc.status = "Absent"
+        # 					if self.session == "Second Half":
+        # 						if doc.total_working_hours:
+        # 							total_working_hours = doc.total_working_hours 
+        # 							total_working_hours += formatted_total_hours
+        # 						else:
+        # 							total_working_hours = formatted_total_hours
+        # 						total_working_hours = float(total_working_hours)
+        # 						if total_working_hours >= 8:
+        # 							doc.status = "Present"
+        # 						elif 4 <= total_working_hours <8:
+        # 							doc.status = "Half Day"
+        # 						else:
+        # 							doc.status = "Absent"
+        # 					if self.session == "Hourly":
+        # 						if self.total_hourly == '1 Hour':
+        # 							if doc.total_working_hours:
+        # 								total_working_hours = doc.total_working_hours 
+        # 								total_working_hours += 1
+        # 							else:
+        # 								total_working_hours = 1
+        # 							total_working_hours = float(total_working_hours)
+        # 							if total_working_hours >= 8:
+        # 								doc.status = "Present"
+        # 							elif 4 <= total_working_hours <8:
+        # 								doc.status = "Half Day"
+        # 							else:
+        # 								doc.status = "Absent"
+        # 						elif self.total_hourly == '2 Hours':	
+        # 							if doc.total_working_hours:
+        # 								total_working_hours = doc.total_working_hours 
+        # 								total_working_hours += 2
+        # 							else:
+        # 								total_working_hours = 2
+        # 							total_working_hours = float(total_working_hours)
+        # 						elif self.total_hourly == '3 Hours':
+        # 							if doc.total_working_hours:
+        # 								total_working_hours = doc.total_working_hours 
+        # 								total_working_hours += 3
+        # 							else:
+        # 								total_working_hours = 3
+        # 							total_working_hours = float(total_working_hours)
+        # 						elif self.total_hourly == '4 Hours':
+        # 							if doc.total_working_hours:
+        # 								total_working_hours = doc.total_working_hours 
+        # 								total_working_hours += 4
+        # 							else:
+        # 								total_working_hours = 4
+        # 							total_working_hours = float(total_working_hours)
+        # 						if total_working_hours >= 8:
+        # 							doc.status = "Present"
+        # 						elif 4 <= total_working_hours <8:
+        # 							doc.status = "Half Day"
+        # 						else:
+        # 							doc.status = "Absent"
+        # 					doc.shift = self.shift
+        # 					doc.on_duty_application = self.name
+        # 					doc.session_from_time = self.from_time
+        # 					doc.session_to_time = self.to_time
+        # 					doc.save(ignore_permissions=True)
+        # 					doc.submit()
+        # 					frappe.db.commit()
 
     # def before_save(self):
     #     current_date = today()
     #     previous_date = add_days(current_date,1)
     #     if previous_date:
     #         frappe.throw(_('On Duty Cannot be marked as Future Dates'))
+
+    def on_cancel(self):
+        # Fetch the attendance document linked with the custom on duty application
+        no_of_days = date_diff(add_days(self.to_date, 1),self.od_date )
+        dates = [add_days(self.od_date, i) for i in range(0, no_of_days)]
+        for date in dates:
+            if frappe.db.exists("Attendance",{"attendance_date":date,'employee':self.employee,'docstatus':("!=",2)}):
+                att=frappe.get_doc("Attendance",{"attendance_date":date,'employee':self.employee,'docstatus':("!=",2)})
+                frappe.db.set_value("Attendance",att.name,"on_duty_application",'')
+                frappe.db.set_value("Attendance",att.name,"shift",self.shift)
+                frappe.db.set_value("Attendance",att.name,"session_from_time","00:00")
+                frappe.db.set_value("Attendance",att.name,"session_to_time","00:00")
+                if self.shift == '1':
+                    mark_att_with_employee(date,date,self.employee)
+                else:
+                    to_date = add_days(date,1)
+                    mark_att_with_employee(date,to_date,self.employee)
+
+
+        comp_docs = frappe.get_all("Employee Benefits Regularization",
+            filters={
+                "reference_doctype": self.name,
+                "from_on_duty": 1
+            },
+            fields=["name", "docstatus", "employee", "leave_allocation", "working_hours"]
+        )
+
+        for comp in comp_docs:
+            comp_doc = frappe.get_doc("Employee Benefits Regularization", comp.name)
+
+            # 🔁 Revert Leave Allocation
+            if comp_doc.leave_allocation:
+                leave_alloc = frappe.get_doc("Leave Allocation", comp_doc.leave_allocation)
+
+                # Assuming working_hours or days deducted
+                revert_value = comp_doc.working_hours or 0
+
+                leave_alloc.total_leaves_allocated += revert_value
+                leave_alloc.save(ignore_permissions=True)
+                
+            if comp_doc.docstatus == 1:
+                comp_doc.workflow_state = "Cancelled" 
+                comp_doc.flags.ignore_validate = True
+                comp_doc.cancel()
+
+        # #  Delete
+        # frappe.delete_doc("Employee Benefits Regularization", comp.name, force=1)
+
+
+
 
     def after_insert(self):
         if self.workflow_state == 'Pending for HOD':
@@ -77,9 +604,9 @@ class OnDutyApplication(Document):
     @frappe.whitelist()
     def show_html(self):
         if self.vehicle_request:
-            html = "<h2><center>ON DUTY APPLICATION WITH VEHICLE</center></h2><table class='table table-bordered'><tr><th>From Date</th><th>To Date</th></tr><tr><td><h2>%s</h2></td><td><h2>%s</h2></td></tr><tr><th>From Time</th><th>To Time</th></tr><tr><td><h2>%s</h2></td><td><h2>%s</h2></td></tr></table>"%(frappe.utils.format_date(self.od_date),frappe.utils.format_date(self.od_date),self.from_time,self.to_time)
+            html = "<h2><center>ON DUTY APPLICATION WITH VEHICLE</center></h2><table class='table table-bordered'><tr><th>From Date</th><th>To Date</th></tr><tr><td><h2>%s</h2></td><td><h2>%s</h2></td></tr><tr><th>From Time</th><th>To Time</th></tr><tr><td><h2>%s</h2></td><td><h2>%s</h2></td></tr></table>"%(frappe.utils.format_date(self.od_date),frappe.utils.format_date(self.to_date),self.from_time,self.to_time)
         else:
-            html = "<h2><center>ON DUTY APPLICATION</center></h2><table class='table table-bordered'><tr><th>From Date</th><th>To Date</th></tr><tr><td><h2>%s</h2></td><td><h2>%s</h2></td></tr><tr><th>From Time</th><th>To Time</th></tr><tr><td><h2>%s</h2></td><td><h2>%s</h2></td></tr></table>"%(frappe.utils.format_date(self.od_date),frappe.utils.format_date(self.od_date),self.from_time,self.to_time)
+            html = "<h2><center>ON DUTY APPLICATION</center></h2><table class='table table-bordered'><tr><th>From Date</th><th>To Date</th></tr><tr><td><h2>%s</h2></td><td><h2>%s</h2></td></tr><tr><th>From Time</th><th>To Time</th></tr><tr><td><h2>%s</h2></td><td><h2>%s</h2></td></tr></table>"%(frappe.utils.format_date(self.od_date),frappe.utils.format_date(self.to_date),self.from_time,self.to_time)
         return html
 
     @frappe.whitelist()
@@ -115,6 +642,7 @@ class OnDutyApplication(Document):
     def get_hod(self,department):
         hod = frappe.db.get_value('Department',department,"hod")
         return hod
+
 
 def validate_if_attendance_not_applicable(employee, attendance_date):
     # Check if attendance_date is a Holiday
@@ -155,14 +683,23 @@ def is_holiday(employee, date=None):
         return frappe.get_all('Holiday List', dict(name=holiday_list, holiday_date=date)) and True or False
 
 @frappe.whitelist()
-def get_number_of_leave_days(employee, od_date, to_date,session=None,  to_date_session=None, date_dif=None):
+def get_number_of_leave_days(employee, od_date, to_date,session,  to_date_session=None, date_dif=None):
     number_of_days = 0
     if od_date == to_date:
+        # frappe.errprint(od_date)
+        # frappe.log_error('ON Duty',session) 
         if session != 'Full Day':
             number_of_days = 0.5
+            # frappe.errprint(to_date)
+            # frappe.log_error('ON Duty',to_date)  
         else:
             number_of_days = 1
+            # frappe.errprint(number_of_days)
+            # frappe.log_error('ON Duty',number_of_days)  
     else:
+        # frappe.errprint("welcome")
+        # message = "welcome"
+        # frappe.log_error('ON Duty',message)  
         if session == "Full Day" and to_date_session == "Full Day":
             number_of_days = flt(date_dif)
         if session == "Full Day" and to_date_session == "First Half":
@@ -278,3 +815,80 @@ def get_time(shift,session):
             })
             datalist.append(data.copy())   
     return datalist
+
+@frappe.whitelist()
+def total_od_hours(from_time,to_time,session):
+    if session != 'Hourly':
+        if isinstance(from_time, str):
+            start_time = datetime.strptime(from_time, "%H:%M:%S").time() 
+        elif isinstance(from_time, timedelta):
+            start_time = (datetime.min + from_time).time()
+        else:
+            start_time = from_time 
+        # if session != "Hourly":
+        if isinstance(to_time, str):
+            end_time = datetime.strptime(to_time, "%H:%M:%S").time()  
+        elif isinstance(to_time, timedelta):
+            end_time = (datetime.min + to_time).time()
+        else:
+            end_time = to_time  
+        # else:
+        #     if isinstance(to, str):
+        #         frappe.errprint("D")
+        #         end_time = datetime.strptime(to, "%H:%M").time()  
+        #     elif isinstance(to, timedelta):
+        #         frappe.errprint("E")
+        #         end_time = (datetime.min + to).time()
+        #     else:
+        #         end_time = to  
+        #         frappe.errprint("F")
+        if isinstance(start_time, time) and isinstance(end_time, time):
+            time_difference = datetime.combine(datetime.today(), end_time) - datetime.combine(datetime.today(), start_time)
+            total_seconds = time_difference.total_seconds()
+            formatted_total_hours =round((total_seconds/3600),1)
+            formatted_total_hours = float(formatted_total_hours)
+            frappe.errprint(formatted_total_hours)
+            # frappe.errprint(name)
+            # frappe.db.set_value("On Duty Application",self.name,"total_od_hours",formatted_total_hours)
+        return formatted_total_hours
+
+
+@frappe.whitelist()
+def total_od_hours_with_to(from_time,to,session):
+    if session == 'Hourly':
+        if isinstance(from_time, str):
+            start_time = datetime.strptime(from_time, "%H:%M:%S").time() 
+        elif isinstance(from_time, timedelta):
+            start_time = (datetime.min + from_time).time()
+        else:
+            start_time = from_time 
+        if isinstance(to, str):
+            end_time = datetime.strptime(to, "%H:%M").time()  
+        elif isinstance(to, timedelta):
+            end_time = (datetime.min + to).time()
+        else:
+            end_time = to  
+        if isinstance(start_time, time) and isinstance(end_time, time):
+            time_difference = datetime.combine(datetime.today(), end_time) - datetime.combine(datetime.today(), start_time)
+            total_seconds = time_difference.total_seconds()
+            formatted_total_hours =round((total_seconds/3600),1)
+            formatted_total_hours = float(formatted_total_hours)
+            # frappe.errprint(name)
+            # frappe.db.set_value("On Duty Application",self.name,"total_od_hours",formatted_total_hours)
+        return formatted_total_hours
+    
+@frappe.whitelist()
+def update_approval_role(workflow_state,name):
+    if workflow_state == 'HOD Pending':
+        frappe.db.set_value('On Duty Application',{'name':name}, 'approver_role', 'HOD')
+    elif workflow_state == 'TL Pending':
+        frappe.db.set_value('On Duty Application',{'name':name}, 'approver_role', 'TL')
+    elif workflow_state == 'HR Pending':
+        frappe.db.set_value('On Duty Application',{'name':name}, 'approver_role', 'HR Manager')
+    elif workflow_state == 'Director Pending':
+        frappe.db.set_value('On Duty Application',{'name':name}, 'approver_role', 'Director')
+    elif workflow_state == 'MD Pending':
+        frappe.db.set_value('On Duty Application',{'name':name}, 'approver_role', 'MD')
+    elif workflow_state in ['Approved', 'Rejected']:
+        frappe.db.set_value('On Duty Application',{'name':name}, 'approver', frappe.session.user)
+    return "ok"

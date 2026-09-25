@@ -18,15 +18,13 @@
    "fieldtype": "Date",
    "in_list_view": 1,
    "label": "Attendance Date",
-   "read_only": 1,
    "reqd": 1
   },
   {
    "fieldname": "shift",
    "fieldtype": "Link",
    "label": "Shift",
-   "options": "Shift Type",
-   "read_only": 1
+   "options": "Shift Type"
   },
   {
    "fieldname": "section_break_3",
@@ -42,7 +40,7 @@
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2023-09-22 10:50:07.509848",
+ "modified": "2024-11-06 18:15:06.379675",
  "modified_by": "Administrator",
  "module": "Johoku",
  "name": "Live Shiftwise Dashboard",
@@ -61,5 +59,6 @@
  ],
  "sort_field": "modified",
  "sort_order": "DESC",
- "states": []
+ "states": [],
+ "track_changes": 1
 }

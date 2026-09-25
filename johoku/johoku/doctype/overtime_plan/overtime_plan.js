@@ -6,6 +6,19 @@ frappe.ui.form.on('Overtime Plan', {
 		frm.fields_dict.error_preview.$wrapper.empty()
 		frm.fields_dict.csv_preview.$wrapper.empty()
 		frm.trigger('show_csv_data')
+		if (frappe.user_roles.includes("HR User")) {
+            frm.set_query("department", function () {
+                return {};
+            });
+        }
+        else {
+            frm.set_query("department", function () {
+				return {
+					query: "johoku.johoku.doctype.overtime_plan.overtime_plan.get_allowed_departments"
+				};
+			});
+        
+        }
 	},
 	get_template: function (frm) {
 		if (frm.doc.ot_to_date) {
@@ -21,23 +34,70 @@ frappe.ui.form.on('Overtime Plan', {
 			frappe.throw("Please enter OT To Date")
 		}
 	},
+	// ot_from_date(frm) {
+	// 	if (frm.doc.ot_from_date) {
+	// 		if (frm.doc.ot_from_date < frappe.datetime.now_date()) {
+	// 			if (!frappe.user_roles.includes('Admin') && !frappe.user_roles.includes('HOD')) {
+	// 			frappe.msgprint(" OT From Date should not be a Past Date")
+	// 			frm.set_value('ot_from_date', '')
+	// 			}
+	// 		}
+	// 		// if (frm.doc.ot_from_date > frappe.datetime.add_days(frappe.datetime.now_date(), 7)) {
+	// 		// 	frappe.msgprint("OT From Date should be within 7 days from Today")
+	// 		// 	frm.set_value('ot_from_date', '')
+	// 		// }
+	// 	}
+	// },
 	ot_from_date(frm) {
-		if (frm.doc.ot_from_date) {
-			if (frm.doc.ot_from_date < frappe.datetime.now_date()) {
-				frappe.msgprint(" OT From Date should not be a Past Date")
-				frm.set_value('ot_from_date', '')
+		if (!frm.doc.ot_from_date) return;
+		const today = frappe.datetime.now_date();
+		const from_date = frm.doc.ot_from_date;
+
+		const diff_days = frappe.datetime.get_diff(today, from_date);
+
+		if (frappe.user_roles.includes('Admin') || frappe.user_roles.includes('Miss Punch')) {
+			return;
+		}
+		if (frappe.user_roles.includes('HOD')) {
+			if (diff_days > 3) {
+				frappe.msgprint("Select OT From Date only up to past 3 days");
+				frm.set_value('ot_from_date', '');
 			}
-			// if (frm.doc.ot_from_date > frappe.datetime.add_days(frappe.datetime.now_date(), 7)) {
-			// 	frappe.msgprint("OT From Date should be within 7 days from Today")
-			// 	frm.set_value('ot_from_date', '')
-			// }
+			return;
+		}
+		if (from_date < today) {
+			frappe.msgprint("OT From Date should not be a Past Date");
+			frm.set_value('ot_from_date', '');
 		}
 	},
+
 	ot_to_date(frm) {
 		if (frm.doc.ot_to_date) {
 			if (frm.doc.ot_to_date < frappe.datetime.now_date()) {
-				frappe.msgprint(" OT To Date should not be a Past Date")
-				frm.set_value('ot_to_date', '')
+				// if (!frappe.user_roles.includes('Admin') &&  !frappe.user_roles.includes('HOD')) {
+				// 	frappe.msgprint("OT To Date should not be a Past Date");
+				// 	frm.set_value('ot_to_date', '');
+				// }
+				const today = frappe.datetime.now_date();
+				const from_date = frm.doc.ot_to_date;
+
+				const diff_days = frappe.datetime.get_diff(today, from_date);
+
+				if (frappe.user_roles.includes('Admin') || frappe.user_roles.includes('Miss Punch') ) {
+					return;
+				}
+				if (frappe.user_roles.includes('HOD')) {
+					if (diff_days > 3) {
+						frappe.msgprint("Select OT From Date only up to past 3 days");
+						frm.set_value('ot_to_date', '');
+					}
+					return;
+				}
+				if (from_date < today) {
+					frappe.msgprint("OT From Date should not be a Past Date");
+					frm.set_value('ot_to_date', '');
+				}
+
 			}
 			else if (frm.doc.ot_to_date < frm.doc.ot_from_date) {
 				frappe.msgprint("OT To Date should not be greater than OT From Date")
@@ -67,23 +127,10 @@ frappe.ui.form.on('Overtime Plan', {
 			// }
 		}
 	},
-	upload(frm) {
-		frm.trigger('show_csv_data')
-		if (frm.doc.upload) {
-			frm.call('validate_employees').then(r => {
-				if (r.message) {
-					frm.fields_dict.error_preview.$wrapper.empty().append("<h2>Error Preview</h2><ul>" + r.message + "</ul>")
-					frm.disable_save()
-					frm.set_value('upload', '')
-					frm.fields_dict.error_preview.$wrapper.empty()
-					frm.fields_dict.csv_preview.$wrapper.empty()
-				}
-			})
-		}
-	},
+	
+	
 	validate(frm) {
 		frm.trigger('show_csv_data')
-		frm.trigger('upload')
 	},
 	show_csv_data(frm) {
 		if (frm.doc.upload) {

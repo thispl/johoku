@@ -1,0 +1,51 @@
+{
+ "based_on": "",
+ "chart_name": "Plan Vs Actual",
+ "chart_type": "Report",
+ "creation": "2024-11-12 13:44:02.639968",
+ "custom_options": "{\n\t\t\"type\": \"line\",\n\t\t\"axisOptions\": {\n\t\t\t\"shortenYAxisNumbers\": 1\n\t\t},\n\t\t\"tooltipOptions\": {}\n\t}",
+ "docstatus": 0,
+ "doctype": "Dashboard Chart",
+ "document_type": "",
+ "dynamic_filters_json": "{\"start_date\":\"frappe.datetime.nowdate()\",\"end_date\":\"frappe.datetime.nowdate()\",\"shift\":\"1\"}",
+ "filters_json": "{\"start_date\":\"2024-11-01\",\"end_date\":\"2024-11-30\"}",
+ "group_by_type": "Count",
+ "idx": 0,
+ "is_public": 1,
+ "is_standard": 1,
+ "modified": "2024-11-15 10:45:57.010725",
+ "modified_by": "Administrator",
+ "module": "Johoku",
+ "name": "Plan Vs Actual",
+ "number_of_groups": 0,
+ "owner": "Administrator",
+ "parent_document_type": "",
+ "report_name": "Man Power Shift Wise Count",
+ "roles": [],
+ "source": "",
+ "time_interval": "Yearly",
+ "timeseries": 0,
+ "timespan": "Last Year",
+ "type": "Bar",
+ "use_report_chart": 1,
+ "value_based_on": "",
+ "x_field": "department",
+ "y_axis": [
+  {
+   "color": "#761ACB",
+   "y_field": "plan"
+  },
+  {
+   "color": "#CB2929",
+   "y_field": "actual"
+  },
+  {
+   "color": "#29CD42",
+   "y_field": "gap"
+  },
+  {
+   "color": "#ED6396",
+   "y_field": "absent"
+  }
+ ]
+}

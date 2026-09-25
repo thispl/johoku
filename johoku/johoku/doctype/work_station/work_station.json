@@ -19,7 +19,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2023-01-18 20:01:35.094246",
+ "modified": "2024-10-25 12:12:14.159073",
  "modified_by": "Administrator",
  "module": "Johoku",
  "name": "Work Station",
@@ -41,5 +41,6 @@
  ],
  "sort_field": "modified",
  "sort_order": "DESC",
- "states": []
+ "states": [],
+ "track_changes": 1
 }

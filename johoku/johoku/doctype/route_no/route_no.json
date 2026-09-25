@@ -18,7 +18,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2022-08-18 14:58:47.842480",
+ "modified": "2024-10-25 12:12:15.465285",
  "modified_by": "Administrator",
  "module": "Johoku",
  "name": "Route No",
@@ -40,5 +40,6 @@
  ],
  "sort_field": "modified",
  "sort_order": "DESC",
- "states": []
+ "states": [],
+ "track_changes": 1
 }

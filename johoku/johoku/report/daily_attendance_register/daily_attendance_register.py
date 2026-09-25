@@ -40,6 +40,7 @@ def get_columns(filters):
         _("Assigned Shift ") + ":Data/:80",
         _("Attended Shift ") + ":Data/:80",
         _("Shift Status") + ":Data/:80",
+        _("Shift Mathched/Unmatched") + ":Data/:180",
         _("TWH") + ":Data/:80",
         _("OT") + ":Data/:80"
     ]
@@ -67,7 +68,7 @@ def get_data(filters):
                                                                                                  'shift_status',
                                                                                                  'attendance_date',
                                                                                                  'total_working_hours',
-                                                                                                 'over_time_hours']) or ''
+                                                                                                 'over_time_hours','shift_matched_or_unmatched']) or ''
             # twh = 0
             # ot = 0
             if att:
@@ -92,6 +93,18 @@ def get_data(filters):
                     row.append(att[5])
                 else: 
                     row.append("P")
+                if att[9]:
+                    if att[9]=='Matched':
+                        row.append('SM')
+                    elif att[9]=='Unmatched' and not att[4] and att[3] != 'No Shift Assigned':
+                        row.append('SUM/NS')
+                    elif att[9]=='Unmatched' and att[3] == 'No Shift Assigned':
+                        row.append('SUM/NA-NS')
+                    else:
+                        row.append('SUM')
+                elif not att[9] and not att[3]:
+                    row.append('NA')
+                
                 # frappe.errprint(type(att[6]))
                 # frappe.errprint(att[7])
                 if att[7]:
@@ -106,6 +119,7 @@ def get_data(filters):
                     row.append('-')
                 # row.append(att[6])
                 # row.append(att[7])
+                
             else:
                 row += ['-','-','-','-','-','-','-','-','-']
             data.append(row)

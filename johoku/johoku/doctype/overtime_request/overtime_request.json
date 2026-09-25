@@ -36,6 +36,7 @@
    "fieldname": "employee",
    "fieldtype": "Link",
    "in_list_view": 1,
+   "in_standard_filter": 1,
    "label": "Employee",
    "options": "Employee",
    "reqd": 1
@@ -58,8 +59,10 @@
   {
    "fetch_from": "employee.department",
    "fieldname": "department",
-   "fieldtype": "Data",
+   "fieldtype": "Link",
+   "in_standard_filter": 1,
    "label": "Department",
+   "options": "Department",
    "read_only": 1
   },
   {
@@ -181,7 +184,7 @@
  ],
  "is_submittable": 1,
  "links": [],
- "modified": "2024-08-10 14:44:53.525015",
+ "modified": "2024-11-05 13:34:25.453051",
  "modified_by": "Administrator",
  "module": "Johoku",
  "name": "Overtime Request",

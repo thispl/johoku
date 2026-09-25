@@ -19,7 +19,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2022-08-19 12:07:39.755206",
+ "modified": "2024-10-25 12:12:15.911236",
  "modified_by": "Administrator",
  "module": "Johoku",
  "name": "Bus Route",
@@ -41,5 +41,6 @@
  ],
  "sort_field": "modified",
  "sort_order": "DESC",
- "states": []
+ "states": [],
+ "track_changes": 1
 }

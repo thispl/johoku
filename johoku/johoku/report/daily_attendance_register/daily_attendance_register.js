@@ -45,5 +45,5 @@ frappe.query_reports["Daily Attendance Register"] = {
 			// "default": ["Staff", "DT", "ITI", "GT", "TT", "CL", "Naps"]
 			// "default" : " "
 		},
-	]	
+	]
 };

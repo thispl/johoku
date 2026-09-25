@@ -3,7 +3,7 @@
 
 frappe.ui.form.on('Permission Request', {
     refresh: function (frm) {
-        frappe.breadcrumbs.add("HR", "Permission Request");
+        frappe.breadcrumbs.add("Home", "Permission Request");
     },
     employee_id(frm) {
         if (frm.doc.employee_id) {
@@ -51,7 +51,45 @@ frappe.ui.form.on('Permission Request', {
     //     }
     // },
     permission_hour(frm){
-        if (frm.doc.session){
+        frm.trigger('get_from_time_and_to_time');
+        // if (frm.doc.session && frm.doc.permission_hour && frm.doc.shift){
+        //     frappe.call({
+        //         "method": "johoku.johoku.doctype.permission_request.permission_request.get_endtime1",
+        //         "args": {
+        //             "shift":frm.doc.shift,
+        //             "session":frm.doc.session,
+        //             "per_hour":frm.doc.permission_hour,	
+        //         },	
+        //         callback(r){
+        //             $.each(r.message,function(i,v){
+        //                 if (frm.doc.permission_hour == '1'){
+        //                     frm.set_value('from_time',v.get_shift_time)
+        //                     frm.set_value('to_time',v.one_hour)
+        //                 }
+        //                 else if (frm.doc.permission_hour == '2'){
+        //                     frm.set_value('from_time',v.get_shift_time)
+        //                     frm.set_value('to_time',v.two_hour)
+        //                 }
+        //                 else{
+        //                     frm.set_value('from_time','00:00')
+        //                     frm.set_value('to_time','00:00')
+        //                 }
+        //             })
+        //         }
+        //     })
+        // }
+		// else {
+		// 	frm.trigger('shift')
+		// }
+    },
+    session(frm){
+        frm.trigger('get_from_time_and_to_time');
+    },
+    shift(frm){
+        frm.trigger('get_from_time_and_to_time');
+    },
+    get_from_time_and_to_time:function(frm){
+        if (frm.doc.session && frm.doc.permission_hour && frm.doc.shift){
             frappe.call({
                 "method": "johoku.johoku.doctype.permission_request.permission_request.get_endtime1",
                 "args": {
@@ -77,9 +115,9 @@ frappe.ui.form.on('Permission Request', {
                 }
             })
         }
-		else {
-			frm.trigger('shift')
-		}
+		// else {
+		// 	frm.trigger('shift')
+		// }
     }
     // after_save(frm){
     // 	console.log('ok')
